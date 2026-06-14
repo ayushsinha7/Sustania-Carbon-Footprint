@@ -4,7 +4,7 @@ Sustaina is a responsive, interactive digital twin dashboard designed to model l
 
 ## 🔗 Project Links
 * **Live Workspace Preview:** https://ai.studio/apps/325c7e77-bec2-4823-b1d4-ff5b549c4511
-* **GitHub Repository:** [PASTE YOUR GITHUB REPO LINK HERE]
+* **GitHub Repository:** https://github.com/ayushsinha7/Sustania-Carbon-Footprint
 
 ## 🛠️ Key Features
 * **Dynamic Simulation Engine:** Computes real-time carbon offsets utilizing utility, transit, and dietary metrics.
