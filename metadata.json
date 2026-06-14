@@ -1,0 +1,6 @@
+{
+  "name": "Carbon Footprint Simulator",
+  "description": "An interactive carbon footprint tracker and city survival simulation game where user actions shape the environmental destiny of their virtual territory.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

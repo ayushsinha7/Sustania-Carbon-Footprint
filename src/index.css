@@ -1,0 +1,50 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-display: 'Space Grotesk', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+/* Base resets & theme overrides */
+body {
+  background-color: #0A0B0E;
+  color: #e2e8f0;
+}
+
+/* Custom glowing effects for our premium green-energy tech state */
+@keyframes pulse-slow {
+  0%, 100% { opacity: 0.15; }
+  50% { opacity: 0.35; }
+}
+
+.glow-green {
+  box-shadow: 0 0 25px rgba(52, 211, 153, 0.15);
+}
+
+.glow-red {
+  box-shadow: 0 0 25px rgba(244, 63, 94, 0.15);
+}
+
+.glow-amber {
+  box-shadow: 0 0 25px rgba(245, 158, 11, 0.15);
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 6s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Custom spin for our globe logo */
+.animate-spin-slow {
+  animation: spin 12s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
