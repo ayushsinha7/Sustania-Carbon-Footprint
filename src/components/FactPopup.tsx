@@ -60,6 +60,7 @@ export default function FactPopup({ onDismiss }: FactPopupProps) {
           {/* Close trigger */}
           <button
             id="close-welcome-modal"
+            aria-label="Close modal"
             onClick={onDismiss}
             className="absolute top-4 right-4 rounded-full p-2 text-slate-400 hover:bg-slate-800 hover:text-white transition-colors"
           >

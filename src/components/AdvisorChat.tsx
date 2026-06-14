@@ -183,6 +183,7 @@ Ask me how to implement carbon reductions, how to reform heavy coal energy, or q
         <input
           type="text"
           id="advisor-text-input"
+          aria-label="Ask AI Climate Advisor a question"
           value={userInput}
           onChange={(e) => setUserInput(e.target.value)}
           placeholder="Ask advice on carbon budgets, recycling, or transport grid..."
@@ -191,6 +192,7 @@ Ask me how to implement carbon reductions, how to reform heavy coal energy, or q
         <button
           type="submit"
           id="send-advisor-query-btn"
+          aria-label="Send message"
           disabled={!userInput.trim() || consulting}
           className={`p-2.5 rounded-xl transition-all cursor-pointer ${
             userInput.trim() && !consulting

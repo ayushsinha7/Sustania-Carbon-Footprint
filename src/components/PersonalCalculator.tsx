@@ -2,6 +2,14 @@ import React, { useState } from "react";
 import { motion } from "motion/react";
 import { Leaf, Award, Footprints, Train, HelpCircle, Utensils, Home, Plane, Save, Info, RefreshCw } from "lucide-react";
 import { FootprintCalculation } from "../types";
+import {
+  computeElectricityCO2,
+  computeHeatingCO2,
+  computeCarCO2,
+  computeFlightsCO2,
+  computeDietCO2,
+  computeRawTotal
+} from "../utils/calculations";
 
 interface PersonalCalculatorProps {
   onCommitCalculations: (calculatedTons: number, pledgedBonus: number) => void;
@@ -23,51 +31,7 @@ export default function PersonalCalculator({ onCommitCalculations, onUnlockUpgra
   const [selectedPledges, setSelectedPledges] = useState<string[]>([]);
   const [pledgesSubmitted, setPledgesSubmitted] = useState(false);
 
-  // CO2 Calculation Equations (Standard Environmental science simplified to metric tons/yr)
-  const computeElectricityCO2 = () => {
-    // ~$0.15 per kWh. ~0.380 kg of CO2 per kWh.
-    const kwh = inputs.electricityUsage / 0.16;
-    const kgPerYr = kwh * 12 * 0.38;
-    return kgPerYr / 1000; // in metric tons
-  };
-
-  const computeHeatingCO2 = () => {
-    switch (inputs.heatingType) {
-      case "naturalGas": return 1.8;
-      case "heatingOil": return 2.6;
-      case "electricity": return 1.1;
-      case "solar": return 0.05;
-      default: return 0;
-    }
-  };
-
-  const computeCarCO2 = () => {
-    if (inputs.carType === "none") return 0;
-    // factor: kg of CO2 per km
-    let factor = 0.22; // gasoline
-    if (inputs.carType === "hybrid") factor = 0.12;
-    if (inputs.carType === "electric") factor = 0.04; // grid-mix based
-
-    const kmPerYr = inputs.carKilometers * 52;
-    return (kmPerYr * factor) / 1000;
-  };
-
-  const computeFlightsCO2 = () => {
-    // ~120 kg CO2 emitted per hour of aviation flight
-    return (inputs.flightHours * 135) / 1000;
-  };
-
-  const computeDietCO2 = () => {
-    switch (inputs.dietType) {
-      case "heavyMeat": return 2.9;
-      case "balanced": return 1.9;
-      case "vegetarian": return 1.3;
-      case "vegan": return 0.9;
-      default: return 1.5;
-    }
-  };
-
-  const rawTotal = computeElectricityCO2() + computeHeatingCO2() + computeCarCO2() + computeFlightsCO2() + computeDietCO2();
+  const rawTotal = computeRawTotal(inputs);
 
   // Pledge choices and calculations of dynamic offset bonus
   const activePledgesList = [
@@ -133,7 +97,7 @@ export default function PersonalCalculator({ onCommitCalculations, onUnlockUpgra
           {/* Slider 1: Electricity expense */}
           <div className="space-y-3 p-4 bg-white/5 rounded-2xl border border-white/5">
             <div className="flex justify-between items-center">
-              <label className="text-xs uppercase tracking-widest text-slate-300 font-semibold flex items-center gap-2">
+              <label htmlFor="electricity-usage-input" className="text-xs uppercase tracking-widest text-slate-300 font-semibold flex items-center gap-2 cursor-pointer">
                 <Home className="h-4 w-4 text-emerald-400" />
                 <span>Monthly Electricity Bill</span>
               </label>
@@ -143,13 +107,15 @@ export default function PersonalCalculator({ onCommitCalculations, onUnlockUpgra
             </div>
             <input
               type="range"
+              id="electricity-usage-input"
+              aria-label="Monthly Electricity Bill"
               min="10"
               max="350"
               value={inputs.electricityUsage}
               onChange={(e) => setInputs({ ...inputs, electricityUsage: Number(e.target.value) })}
               className="w-full h-1.5 bg-[#1A1D24] rounded-lg appearance-none cursor-pointer accent-emerald-500"
             />
-            <p className="text-[10px] text-slate-500 leading-normal font-mono flex items-center gap-1">
+            <p className="text-[10px] text-slate-400 leading-normal font-mono flex items-center gap-1">
               <Info className="h-3.5 w-3.5 text-emerald-400/60" /> Calculated at regional utility emission coefficients.
             </p>
           </div>
@@ -173,11 +139,11 @@ export default function PersonalCalculator({ onCommitCalculations, onUnlockUpgra
                   className={`p-3 rounded-xl border text-left transition-all cursor-pointer ${
                     inputs.heatingType === fuel.id
                       ? "border-emerald-500/50 bg-emerald-500/10 text-white shadow-md shadow-emerald-500/5"
-                      : "border-white/5 bg-[#1A1D24] text-slate-400 hover:border-slate-700"
+                      : "border-white/5 bg-[#1A1D24] text-slate-350 hover:border-slate-700"
                   }`}
                 >
                   <p className="text-xs font-semibold">{fuel.label}</p>
-                  <p className="text-[9px] font-mono mt-0.5 text-slate-500 leading-none">{fuel.desc}</p>
+                  <p className="text-[9px] font-mono mt-0.5 text-slate-400 leading-none">{fuel.desc}</p>
                 </button>
               ))}
             </div>
@@ -186,7 +152,7 @@ export default function PersonalCalculator({ onCommitCalculations, onUnlockUpgra
           {/* Slider 3: Car Travel commute */}
           <div className="space-y-3 p-4 bg-white/5 rounded-2xl border border-white/5">
             <div className="flex justify-between items-center">
-              <label className="text-xs uppercase tracking-widest text-slate-300 font-semibold flex items-center gap-2">
+              <label htmlFor="car-kilometers-input" className="text-xs uppercase tracking-widest text-slate-300 font-semibold flex items-center gap-2 cursor-pointer">
                 <Train className="h-4 w-4 text-emerald-400" />
                 <span>Car Weekly Travel Distance</span>
               </label>
@@ -196,6 +162,8 @@ export default function PersonalCalculator({ onCommitCalculations, onUnlockUpgra
             </div>
             <input
               type="range"
+              id="car-kilometers-input"
+              aria-label="Car Weekly Travel Distance"
               min="0"
               max="500"
               value={inputs.carKilometers}
@@ -204,7 +172,7 @@ export default function PersonalCalculator({ onCommitCalculations, onUnlockUpgra
             />
 
             <div className="pt-2">
-              <p className="text-xs text-slate-400 font-semibold mb-1.5 font-mono">My Car Fuel Type</p>
+              <p className="text-xs text-slate-300 font-semibold mb-1.5 font-mono">My Car Fuel Type</p>
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
                 {[
                   { id: "gasoline", label: "Gas / Diesel" },
@@ -217,8 +185,8 @@ export default function PersonalCalculator({ onCommitCalculations, onUnlockUpgra
                     onClick={() => setInputs({ ...inputs, carType: type.id as any })}
                     className={`px-3 py-1.5 rounded-lg border text-xs font-mono text-center transition-all cursor-pointer ${
                       inputs.carType === type.id
-                        ? "border-emerald-550 bg-emerald-500/10 text-emerald-400"
-                        : "border-white/5 bg-[#1A1D24] text-slate-500"
+                        ? "border-emerald-555 bg-emerald-500/10 text-emerald-400"
+                        : "border-white/5 bg-[#1A1D24] text-slate-400 hover:border-slate-700"
                     }`}
                   >
                     {type.label}
@@ -232,7 +200,7 @@ export default function PersonalCalculator({ onCommitCalculations, onUnlockUpgra
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="p-4 bg-white/5 rounded-2xl border border-white/5 space-y-3">
               <div className="flex justify-between items-center">
-                <label className="text-xs uppercase tracking-widest text-slate-300 font-semibold flex items-center gap-2">
+                <label htmlFor="flight-hours-input" className="text-xs uppercase tracking-widest text-slate-300 font-semibold flex items-center gap-2 cursor-pointer">
                   <Plane className="h-4 w-4 text-emerald-400" />
                   <span>Aviation Flight Hours</span>
                 </label>
@@ -242,6 +210,8 @@ export default function PersonalCalculator({ onCommitCalculations, onUnlockUpgra
               </div>
               <input
                 type="range"
+                id="flight-hours-input"
+                aria-label="Annual Aviation Flight Hours"
                 min="0"
                 max="80"
                 value={inputs.flightHours}
@@ -267,8 +237,8 @@ export default function PersonalCalculator({ onCommitCalculations, onUnlockUpgra
                     onClick={() => setInputs({ ...inputs, dietType: diet.id as any })}
                     className={`py-1 rounded-lg border text-xs font-mono text-center transition-all cursor-pointer ${
                       inputs.dietType === diet.id
-                        ? "border-emerald-550 bg-emerald-500/10 text-emerald-450 text-emerald-400"
-                        : "border-white/5 bg-[#1A1D24] text-slate-500 hover:border-slate-800"
+                        ? "border-emerald-555 bg-emerald-500/10 text-emerald-450 text-emerald-400"
+                        : "border-white/5 bg-[#1A1D24] text-slate-400 hover:border-slate-750"
                     }`}
                   >
                      {diet.label}
