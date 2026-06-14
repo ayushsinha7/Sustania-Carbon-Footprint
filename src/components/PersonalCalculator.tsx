@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { motion } from "motion/react";
 import { Leaf, Award, Footprints, Train, HelpCircle, Utensils, Home, Plane, Save, Info, RefreshCw } from "lucide-react";
 import { FootprintCalculation } from "../types";
@@ -10,6 +10,28 @@ import {
   computeDietCO2,
   computeRawTotal
 } from "../utils/calculations";
+
+// Pledge choices and calculations of dynamic offset bonus (declared statically outside to optimize rendering references)
+const ACTIVE_PLEDGES_LIST = [
+  {
+    id: "pledge_beef",
+    label: "Go Meatless on Mondays",
+    desc: "Cut intensive industrial meat consumption by 15%, reducing diet methane emissions.",
+    offsetBonus: 80,
+  },
+  {
+    id: "pledge_transit",
+    label: "Take Electric Transit twice a week",
+    desc: "Swap car commutes for clean metro rails or electric buses. Drops road carbon by 25%.",
+    offsetBonus: 100,
+  },
+  {
+    id: "pledge_led",
+    label: "Equip Smart LED Bulbs",
+    desc: "Optimize utility load to lower thermal loss. Reduces electrical consumption.",
+    offsetBonus: 70,
+  }
+];
 
 interface PersonalCalculatorProps {
   onCommitCalculations: (calculatedTons: number, pledgedBonus: number) => void;
@@ -31,29 +53,8 @@ export default function PersonalCalculator({ onCommitCalculations, onUnlockUpgra
   const [selectedPledges, setSelectedPledges] = useState<string[]>([]);
   const [pledgesSubmitted, setPledgesSubmitted] = useState(false);
 
-  const rawTotal = computeRawTotal(inputs);
-
-  // Pledge choices and calculations of dynamic offset bonus
-  const activePledgesList = [
-    {
-      id: "pledge_beef",
-      label: "Go Meatless on Mondays",
-      desc: "Cut intensive industrial meat consumption by 15%, reducing diet methane emissions.",
-      offsetBonus: 80,
-    },
-    {
-      id: "pledge_transit",
-      label: "Take Electric Transit twice a week",
-      desc: "Swap car commutes for clean metro rails or electric buses. Drops road carbon by 25%.",
-      offsetBonus: 100,
-    },
-    {
-      id: "pledge_led",
-      label: "Equip Smart LED Bulbs",
-      desc: "Optimize utility load to lower thermal loss. Reduces electrical consumption.",
-      offsetBonus: 70,
-    }
-  ];
+  // Memoized carbon values computation to prevent overhead on range adjustments
+  const rawTotal = useMemo(() => computeRawTotal(inputs), [inputs]);
 
   const handleTogglePledge = (pledgeId: string) => {
     if (selectedPledges.includes(pledgeId)) {
@@ -70,7 +71,7 @@ export default function PersonalCalculator({ onCommitCalculations, onUnlockUpgra
 
   const handleCommitPledges = () => {
     const totalEcoBonus = selectedPledges.reduce((acc, pledgeId) => {
-      const p = activePledgesList.find((x) => x.id === pledgeId);
+      const p = ACTIVE_PLEDGES_LIST.find((x) => x.id === pledgeId);
       return acc + (p?.offsetBonus || 0);
     }, 0);
 
@@ -287,7 +288,7 @@ export default function PersonalCalculator({ onCommitCalculations, onUnlockUpgra
 
           <div className="text-left space-y-3 max-w-md mx-auto">
             <p className="text-xs font-mono text-slate-400 uppercase tracking-widest pl-1">Take Real Carbon Pledges</p>
-            {activePledgesList.map((p) => {
+            {ACTIVE_PLEDGES_LIST.map((p) => {
               const isSelected = selectedPledges.includes(p.id);
               return (
                 <button

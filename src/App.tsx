@@ -25,6 +25,7 @@ import CityMap from "./components/CityMap";
 import PersonalCalculator from "./components/PersonalCalculator";
 import AdvisorChat from "./components/AdvisorChat";
 import QuizSection from "./components/QuizSection";
+import { validatePurchase, applyUpgrade, calculateNetZeroIndex } from "./utils/gameRules";
 
 // Standard initial high-carbon starting stats
 const INITIAL_STATS: CityStats = {
@@ -274,56 +275,16 @@ export default function App() {
   // Core callback: Constructing city sectors
   const handlePurchaseUpgrade = (id: string) => {
     const upgrade = upgrades.find((u) => u.id === id);
-    if (!upgrade || stats.credits < upgrade.cost) return;
+    if (!upgrade) return;
 
-    // Mutate city simulator parameters
-    setStats((prev) => {
-      let nextCO2 = prev.co2 + upgrade.co2Effect;
-      let nextHealth = prev.health + upgrade.healthEffect;
+    const validation = validatePurchase(stats, upgrade, calculatorCompleted);
+    if (!validation.allowed) {
+      console.warn(validation.reason);
+      return;
+    }
 
-      // Restrict carbon lower limits to 0.0 (Net-Zero goal achieved!)
-      nextCO2 = Math.max(0, nextCO2);
-      nextHealth = Math.min(100, nextHealth);
-
-      const nextCredits = prev.credits - upgrade.cost;
-
-      // Return derived categorical upgrades updates
-      let updatedEnergy = prev.energySupplyType;
-      let updatedTransport = prev.transportType;
-      let updatedIndustry = prev.industryType;
-      let updatedForestry = prev.forestryType;
-      let updatedHousing = prev.housingType;
-
-      if (upgrade.category === "energy") {
-        if (upgrade.id === "gaspump") updatedEnergy = "Natural Gas";
-        if (upgrade.id === "windsolar") updatedEnergy = "Solar & Wind";
-        if (upgrade.id.includes("fusion")) updatedEnergy = "Nuclear Fusion";
-      } else if (upgrade.category === "transport") {
-        if (upgrade.id === "biobuses") updatedTransport = "Hybrid Public Buses";
-        if (upgrade.id === "maglevEV") updatedTransport = "100% Electric Rail & EV";
-      } else if (upgrade.category === "industry") {
-        if (upgrade.id === "filters") updatedIndustry = "Standard Regulatory";
-        if (upgrade.id === "biotechs") updatedIndustry = "Zero-Waste Bio-tech";
-      } else if (upgrade.category === "forestry") {
-        if (upgrade.id === "streetgreen") updatedForestry = "Urban Greenspaces";
-        if (upgrade.id === "redwoods") updatedForestry = "Pristine Protected Canopy";
-      } else if (upgrade.category === "housing") {
-        if (upgrade.id === "condos") updatedHousing = "Double-glazed Efficient Apartments";
-        if (upgrade.id.includes("microgrid")) updatedHousing = "Active Net-Zero Microgrids";
-      }
-
-      return {
-        ...prev,
-        co2: nextCO2,
-        health: nextHealth,
-        credits: nextCredits,
-        energySupplyType: updatedEnergy,
-        transportType: updatedTransport,
-        industryType: updatedIndustry,
-        forestryType: updatedForestry,
-        housingType: updatedHousing
-      };
-    });
+    // Mutate city simulator parameters using optimized game-rule helper
+    setStats((prev) => applyUpgrade(prev, upgrade));
 
     // Mark purchased
     setUpgrades((prevList) =>
@@ -411,7 +372,7 @@ export default function App() {
             <div className="flex items-center gap-2 bg-[#1A1D24] px-3.5 py-1.5 rounded-full border border-white/5">
               <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.5)]" />
               <span className="text-slate-400">Net Zero Grid Index:</span>
-              <strong className="text-emerald-400">{(100 - (stats.co2 / 15.2) * 100).toFixed(0)}%</strong>
+              <strong className="text-emerald-400">{calculateNetZeroIndex(stats.co2)}%</strong>
             </div>
 
             {personalTons !== null && (
