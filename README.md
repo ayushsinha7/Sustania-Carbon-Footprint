@@ -45,3 +45,31 @@ If you wish to run this project on a local machine:
 1. Clone this repository.
 2. Open the directory and start a local development server (e.g., `python3 -m http.server 3000`).
 3. Open `http://localhost:3000` in your browser.
+
+🛠️ What We Improved & Implemented
+
+1. Testing Suite Integration
+Modular Utility Refactoring: Extracted core, high-fidelity carbon calculations into a clean, decoupled utility file (/src/utils/calculations.ts).
+
+Vitest Framework Setup: Added vitest as a devDependency in package.json and created a dedicated test execution script ("test": "vitest run").
+
+Unit Test Coverage: Wrote comprehensive unit tests (/src/__tests__/calculations.test.ts) that precisely evaluate:
+
+Electricity carbon footprint based on monthly bills.
+
+Fuel types and heating climate sources (Solar, Gas, Oil, Grid).
+
+Weekly mileage impact for gasoline, hybrid, electric, and public transit.
+
+Aviation flight hour emission rates.
+
+Dietary configurations.
+
+Verification: All 6 tests are passing perfectly with exit code 0!
+
+2. Enhanced Accessibility (WCAG Compliance)
+High-Contrast Typography: Identified and corrected low-contrast styling (such as text-slate-500 and text-slate-600 on dark #12141A card interfaces). These were upgraded to WCAG-compliant, eye-safe, sharp tones (text-slate-400, text-slate-350, text-slate-300).
+
+Interactive Label Pairings: Added explicit HTML id values and corresponding form labels utilizing htmlFor for all range slider inputs.
+
+Screen-Reader Optimization: Integrated responsive aria-label and modal triggers on all custom slider ranges, search questions, close elements, and the AI Advisor chat.
